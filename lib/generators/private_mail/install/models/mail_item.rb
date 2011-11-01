@@ -1,5 +1,4 @@
-class Mail < ActiveRecord::Base
-  self.table_name = "mail"
+class MailItem < ActiveRecord::Base
   belongs_to :message
   belongs_to :user
   belongs_to :conversation

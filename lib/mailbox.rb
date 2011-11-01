@@ -38,9 +38,9 @@ module PrivateMail
     #   phil.mailbox[:inbox].mail_count(:unread)
     #
     def mail_count(filter = :all, options = {})
-      default_options = {:conditions => ["mail.user_id = ?", @user.id]}
+      default_options = {:conditions => ["mail_items.user_id = ?", @user.id]}
       add_mailbox_condition!(default_options, @type)
-      add_conditions!(default_options, "mail.read = ?", filter == :read) unless filter == :all
+      add_conditions!(default_options, "mail_items.read = ?", filter == :read) unless filter == :all
       return count_mail(default_options, options)
     end
 
@@ -49,7 +49,7 @@ module PrivateMail
     #====params:
     #options:: all valid find options are accepted as well as an additional conversation option.
     #* :conversation - Conversation object to filter mail only belonging to this conversation.
-    #* :conditions - same as find conditions however the array version of conditions will not work, i.e., :conditions => ['mail.read = ?', false] will not work here.
+    #* :conditions - same as find conditions however the array version of conditions will not work, i.e., :conditions => ['mail_items.read = ?', false] will not work here.
     #* all other find options will work as expected.
     # 
     #====returns:
@@ -65,7 +65,7 @@ module PrivateMail
     #   phil.mailbox[:inbox].mail(:conversation => Conversation.find(23)) 
     #
     #   #get all unread mail messages belonging to phil associated with conversation 23
-    #   phil.mailbox.mail(:conversation => Conversation.find(23), :conditions => 'mail.read = false')
+    #   phil.mailbox.mail(:conversation => Conversation.find(23), :conditions => 'mail_items.read = false')
     #
     def mail(options = {})
       default_options = {}
@@ -88,7 +88,7 @@ module PrivateMail
     #   phil.mailbox[:inbox].unread_mail
     #
     def unread_mail(options = {})
-      default_options = {:conditions => ["mail.read = ?", false]}
+      default_options = {:conditions => ["mail_items.read = ?", false]}
       add_mailbox_condition!(default_options, @type)
       return get_mail(default_options, options)
     end
@@ -108,7 +108,7 @@ module PrivateMail
     #   phil.mailbox[:inbox].read_mail
     #
     def read_mail(options = {})
-      default_options = {:conditions => ["mail.read = ?", true]}
+      default_options = {:conditions => ["mail_items.read = ?", true]}
       add_mailbox_condition!(default_options, @type)
       return get_mail(default_options, options)
     end
@@ -148,8 +148,8 @@ module PrivateMail
       attributes = {:message => msg, :conversation => msg.conversation}
       attributes[:mailbox] = @type.to_s unless @type == :all
       attributes[:read] = msg.sender.id == @user.id
-      mail_msg = Mail.new(attributes)
-      @user.mail << mail_msg
+      mail_msg = MailItem.new(attributes)
+      @user.mail_items << mail_msg
       return mail_msg
     end
 
@@ -170,7 +170,7 @@ module PrivateMail
     def mark_as_read(options = {})
       default_options = {}
       add_mailbox_condition!(default_options, @type)
-      return update_mail("mail.read = true", default_options, options)
+      return update_mail("mail_items.read = true", default_options, options)
     end
 
     #marks all the mail messages matched by the options and type as unread, except for sent messages.
@@ -188,9 +188,9 @@ module PrivateMail
     #   phil.mailbox[:inbox].mark_as_unread()
     #
     def mark_as_unread(options = {})
-      default_options = {:conditions => ["mail.mailbox != ?",@user.mailbox_types[:sent].to_s]}
+      default_options = {:conditions => ["mail_items.mailbox != ?",@user.mailbox_types[:sent].to_s]}
       add_mailbox_condition!(default_options, @type)
-      return update_mail("mail.read = false", default_options, options)
+      return update_mail("mail_items.read = false", default_options, options)
     end
 
     #moves all mail matched by the options to the given mailbox. sent messages stay in the sentbox.
@@ -206,13 +206,13 @@ module PrivateMail
       add_mailbox_condition!(default_options, @type)
       if(!trash)
         #conditional update because sentmail is always sentmail - I believe case if the most widely supported conditional, mysql also has an if which would work as well but i think mysql is the only one to support it
-        return update_mail("mail.trashed = false, mail.mailbox = 
-        CASE mail.mailbox
-          WHEN '#{@user.mailbox_types[:sent].to_s}' THEN mail.mailbox
+        return update_mail("mail_items.trashed = false, mail_items.mailbox = 
+        CASE mail_items.mailbox
+          WHEN '#{@user.mailbox_types[:sent].to_s}' THEN mail_items.mailbox
           ELSE '#{mailbox.to_s}'
         END", default_options, options)
       end
-      return update_mail("mail.trashed = true", default_options, options)
+      return update_mail("mail_items.trashed = true", default_options, options)
     end
 
     #permanantly deletes all the mail messages matched by the options. Use move_to(:trash) instead if you want to send to user's trash without deleting.
@@ -221,7 +221,7 @@ module PrivateMail
     #options:: see mail for acceptable options.
     # 
     def delete(options = {})
-      default_options = {:conditions => ["mail.user_id = ?", @user.id]}
+      default_options = {:conditions => ["mail_items.user_id = ?", @user.id]}
       add_mailbox_condition!(default_options, @type)
       return delete_mail(default_options, options)
     end
@@ -237,7 +237,7 @@ module PrivateMail
     #options:: see mail for acceptable options.
     # 
     def empty_trash(options = {})
-      default_options = {:conditions => ["mail.user_id = ? AND mail.trashed = ?", @user.id, true]}
+      default_options = {:conditions => ["mail_items.user_id = ? AND mail_items.trashed = ?", @user.id, true]}
       add_mailbox_condition!(default_options, @type)
       return delete_mail(default_options, options)
     end
@@ -271,12 +271,12 @@ module PrivateMail
 
     def get_mail(default_options, options)
       build_options(default_options, options) unless options.empty?
-      return @user.mail.find(:all, default_options)
+      return @user.mail_items.find(:all, default_options)
     end
 
     def update_mail(updates, default_options, options)
       build_options(default_options, options) unless options.empty?
-      return @user.mail.update_all(updates, default_options[:conditions])
+      return @user.mail_items.update_all(updates, default_options[:conditions])
     end
 
     def delete_mail(default_options, options)
@@ -300,7 +300,7 @@ module PrivateMail
     def only_latest(mail)
       convos = []
       latest = []
-      mail.each do |m|
+      mail_items.each do |m|
         next if(convos.include?(m.conversation_id))
         convos << m.conversation_id
         latest << m
@@ -310,8 +310,8 @@ module PrivateMail
 
     def add_mailbox_condition!(options, mailbox_type)
       return if mailbox_type == :all
-      return add_conditions!(options, "mail.mailbox = ? AND mail.trashed = ?", mailbox_type.to_s, false) unless mailbox_type == @user.mailbox_types[:deleted]
-      return add_conditions!(options, "mail.trashed = ?", true)
+      return add_conditions!(options, "mail_items.mailbox = ? AND mail_items.trashed = ?", mailbox_type.to_s, false) unless mailbox_type == @user.mailbox_types[:deleted]
+      return add_conditions!(options, "mail_items.trashed = ?", true)
     end
 
     def add_conversation_condition!(options, conversation)

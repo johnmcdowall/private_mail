@@ -22,11 +22,11 @@ module PrivateMail
         migration_template "create_conversations.rb", "db/migrate/create_conversations.rb"
         migration_template "create_messages.rb", "db/migrate/create_messages.rb"
         migration_template "create_messages_recipients.rb", "db/migrate/create_messages_recipients.rb"
-        migration_template "create_mail.rb", "db/migrate/create_mail.rb"
+        migration_template "create_mail_items.rb", "db/migrate/create_mail_items.rb"
       end
 
       def copy_models
-          copy_file "../models/mail.rb", "app/models/mail.rb"
+          copy_file "../models/mail_item.rb", "app/models/mail_item.rb"
           copy_file "../models/message.rb", "app/models/message.rb"
           copy_file "../models/conversation.rb", "app/models/conversation.rb"
       end

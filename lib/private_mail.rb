@@ -27,7 +27,7 @@ module PrivateMail
     #   acts_as_messageable :received => :in, :sent => :sent, :deleted => :garbage
     def acts_as_messageable(options = {})
       cattr_accessor :mailbox_types
-      has_many :mail, :order => 'created_at DESC', :dependent => :delete_all
+      has_many :mail_items, :order => 'created_at DESC', :dependent => :delete_all
       
       self.mailbox_types = {
         :received => :inbox,

@@ -1,6 +1,6 @@
-class CreateMail < ActiveRecord::Migration
+class CreateMailItems < ActiveRecord::Migration
   def self.up
-    create_table :mail do |t|
+    create_table :mail_items do |t|
       t.column :user_id, :integer, :null => false
       t.column :message_id, :integer, :null => false
       t.column :conversation_id, :integer
@@ -13,6 +13,6 @@ class CreateMail < ActiveRecord::Migration
   end
 
   def self.down
-    drop_table :mail
+    drop_table :mail_items
   end
 end
