@@ -300,7 +300,7 @@ module PrivateMail
     def only_latest(mail)
       convos = []
       latest = []
-      mail_items.each do |m|
+      mail.each do |m|
         next if(convos.include?(m.conversation_id))
         convos << m.conversation_id
         latest << m
