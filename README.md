@@ -6,7 +6,7 @@ Private Mail implements simple private messaging functionality between users in 
 * Add gem 'private_mail' to your Gemfile
 * bundle install
 * Make sure your User model exists already... 
-* rails g private_message:install
+* rails g private_mail:install
 * Add 'acts_as_messageable' to your user model
 
 ## TODO
