@@ -37,7 +37,7 @@ module PrivateMail
     #   #get number of unread mail messages in phil's inbox
     #   phil.mailbox[:inbox].mail_count(:unread)
     #
-    def mail_count(filter = :all, options = {})
+    def count(filter = :all, options = {})
       default_options = {:conditions => ["mail_items.user_id = ?", @user.id]}
       add_mailbox_condition!(default_options, @type)
       add_conditions!(default_options, "mail_items.read = ?", filter == :read) unless filter == :all
@@ -281,12 +281,12 @@ module PrivateMail
 
     def delete_mail(default_options, options)
       build_options(default_options, options) unless options.empty?
-      return Mail.delete_all(default_options[:conditions])
+      return MailItem.delete_all(default_options[:conditions])
     end
 
     def count_mail(default_options, options)
       build_options(default_options, options) unless options.empty?
-      return Mail.count(:all, default_options)
+      return MailItem.count(:all, default_options)
     end
 
     def build_options(default_options, options)
